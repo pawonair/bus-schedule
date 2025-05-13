@@ -1,0 +1,42 @@
+{
+  "name": "vgn-bus-schedule",
+  "version": "1.0.0",
+  "description": "A Simple Electron app for VGN - Bus departure schedules",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron-forge start",
+    "test": "echo \\\"Error: no test specified\\\" && exit 1",
+    "package": "electron-forge package",
+    "make": "electron-forge make",
+    "publish": "electron-forge publish"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/pawonair/bus-schedule.git"
+  },
+  "keywords": [
+    "electron",
+    "bus",
+    "schedule"
+  ],
+  "author": "Pawan Sunuwar",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/pawonair/bus-schedule/issues"
+  },
+  "homepage": "https://github.com/pawonair/bus-schedule#readme",
+  "devDependencies": {
+    "@electron-forge/cli": "^7.8.1",
+    "@electron-forge/maker-deb": "^7.8.1",
+    "@electron-forge/maker-rpm": "^7.8.1",
+    "@electron-forge/maker-squirrel": "^7.8.1",
+    "@electron-forge/maker-zip": "^7.8.1",
+    "@electron-forge/plugin-auto-unpack-natives": "^7.8.1",
+    "@electron-forge/plugin-fuses": "^7.8.1",
+    "@electron/fuses": "^1.8.0",
+    "electron": "^36.2.0"
+  },
+  "dependencies": {
+    "electron-squirrel-startup": "^1.0.1"
+  }
+}

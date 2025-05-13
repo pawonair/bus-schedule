@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="styles.css">
+    <title>VGN - Bus Schedule</title>
+</head>
+<body>
+    <div class="container">
+        <div class="search-container">
+            <input type="text" id="station-input" placeholder="Enter station name" value="Bamberg, Marienstraße 7">
+            <button id="load-button">Load Schedule</button>
+        </div>
+
+        <div id="loading-indicator">Loading schedule...</div>
+        <div id="schedule-container"></div>
+    </div>
+</body>
+<script src="./renderer.js"></script>
+</html>
