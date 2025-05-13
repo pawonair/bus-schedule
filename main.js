@@ -10,6 +10,7 @@ const createWindow = () => {
             nodeIntegration: false,
             contextIsolation: true,
             webSecurity: true,
+            webviewTag: true,
         },
     });
 
@@ -18,9 +19,9 @@ const createWindow = () => {
             responseHeaders: {
                 ...details.responseHeaders,
                 'Content-Security-Policy': [
-                    "default-src 'self'; frame-src 'self'; https://www.vgn.de; img-src 'self' https://www.vgn.de; connect-src 'self' https://www.vgn.de"
-                ]
-            }
+                    "default-src 'self'; img-src 'self' https://www.vgn.de; connect-src 'self' https://www.vgn.de; style-src 'self' 'unsafe-inline';"
+                ],
+            },
         });
     });
 

@@ -3,16 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'" />
     <link rel="stylesheet" href="styles.css">
     <title>VGN - Bus Schedule</title>
 </head>
 <body>
     <div class="container">
-        <div class="search-container">
-            <input type="text" id="station-input" placeholder="Enter station name" value="Bamberg, Marienstraße 7">
+        <div class="controls">
+            <input type="text" id="station-input" placeholder="Enter station (e.g. Bamberg, Marienstraße 7)" value="Bamberg, Marienstraße 7">
+            <input type="text" id="title-input" placeholder="Custom title (optional)">
             <button id="load-button">Load Schedule</button>
         </div>
-
         <div id="loading-indicator">Loading schedule...</div>
         <div id="schedule-container"></div>
     </div>
