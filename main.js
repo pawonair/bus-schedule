@@ -19,7 +19,10 @@ const createWindow = () => {
             responseHeaders: {
                 ...details.responseHeaders,
                 'Content-Security-Policy': [
-                    "default-src 'self'; img-src 'self' https://www.vgn.de; connect-src 'self' https://www.vgn.de; style-src 'self' 'unsafe-inline';"
+                    "default-src 'self';"
+                    + "img-src 'self' https://www.vgn.de;"
+                    + "connect-src 'self' https://www.vgn.de https://nominatim.openstreetmap.org;"
+                    + "style-src 'self' 'unsafe-inline';"
                 ],
             },
         });
