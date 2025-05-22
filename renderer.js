@@ -6,8 +6,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const loadingIndicator = document.getElementById('loading-indicator');
 
     let selectedStation = {
-        name: 'Bamberg, Marienstraße',
-        coordData: 'coord:4421153.17:630856.29:NAV4:Bamberg,+Marienstraße',
+        name: 'Bamberg, ZOB',
+        nameInfo: 'de:09461:20200',
+        coordData: 'coord:4420478.90:630830.91:NAV4:Bamberg,+ZOB',
+        type: 'stopID',
+        availableTransportModes: ['5'] // Default to Bus
     };
 
     let debounceTimer;
@@ -16,7 +19,7 @@ document.addEventListener('DOMContentLoaded', () => {
     stationInput.addEventListener('input', () => {
         clearTimeout(debounceTimer);
         debounceTimer = setTimeout(() => {
-            searchBusStations(stationInput.value);
+            searchVGNStations(stationInput.value);
         }, 300); // debounced searches prevents too many requests
     });
 
@@ -25,12 +28,11 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Handle suggestion selection
-    suggestionList.addEventListener('click', (e) => {
+    suggestionList.addEventListener('click', async (e) => {
         if (e.target && e.target.classList.contains('suggestion-item')) {
-            selectedStation = {
-                name: e.target.dataset.name,
-                coordData: e.target.dataset.coord,
-            };
+            const suggestionData = JSON.parse(e.target.dataset.suggestion);
+
+            await handleSuggestionSelection(suggestionData, e.target.textContent);
 
             stationInput.value = selectedStation.name;
             suggestionList.innerHTML = ''; // clear suggestions after selection
@@ -46,63 +48,162 @@ document.addEventListener('DOMContentLoaded', () => {
 
     loadBusSchedule();
 
-    // Search bus stations using OpenStreetMap with coordniate transformation
-    async function searchBusStations(query) {
+    // Search VGN stations
+    async function searchVGNStations(query) {
         if (!query || query.length < 2) {
             suggestionList.innerHTML = '';
             return;
         }
 
         try {
-            // Focus on German address (viewbox around Germany)
-            const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&countrycodes=de&addressdetails=1&limit=5&viewbox=8.5,48.5,12.5,50.5&bounded=1`, {
-                headers: {
-                    'User-Agent': 'VGN-Bus-Schedule-App',
+            suggestionList.innerHTML = '<div class="suggestion-item loading">🔍 Searching stops...</div>';
+
+            const response = await fetch(
+                `https://www.vgn.de/ib/site/tools/EFA_Suggest_v3.php?` +
+                `query=${encodeURIComponent(query)}` +
+                `&minChars=2`,
+                {
+                    method: 'GET',
+                    headers: {
+                        'User-Agent': 'VGN-Bus-Schedule-App/1.0',
+                    },
                 },
-            });
+            );
+
+            if (!response.ok) throw new Error('VGN API request failed.');
 
             const data = await response.json();
-            suggestionList.innerHTML = ''; // clear previous suggestions
-
-            if (data && data.length > 0) {
-                data.forEach(place => {
-                    const town = place.address?.town || place.address?.city || place.address?.village || 'Unknown';
-                    const road = place.address?.road || place.address?.pedestrian || 'Unknown Street';
-                    const name = `${town}, ${road}`;
-
-                    /**
-                     * Transform WGS84 coordinates to approximate NAV4
-                     * This is a very simplified transformation, not exact.
-                     */
-                    const approxX = transformToNAV4X(parseFloat(place.lon), parseFloat(place.lat));
-                    const approxY = transformToNAV4Y(parseFloat(place.lon), parseFloat(place.lat));
-
-                    const coordData = `coord:${approxX}:${approxY}:NAV4:${encodeURIComponent(name)}`;
-
-                    const item = document.createElement('div');
-                    item.className = 'suggestion-item osm-result';
-                    item.textContent = name;
-                    item.dataset.name = name;
-                    item.dataset.coord = coordData;
-
-                    suggestionList.appendChild(item);
-                });
-            } else {
-                // Show "no results" message
-                const noResults = document.createElement('div');
-                noResults.className = 'suggestion-item';
-                noResults.textContent = 'No results found';
-                suggestionList.appendChild(noResults);
-            }
+            displayVGNSuggestions(data.suggestions || []);
+            
         } catch (error) {
-            console.error('Error in OSM search: ', error);
-            // Show error message in suggestion list
-            suggestionList.innerHTML = '';
-            const errorItem = document.createElement('div');
-            errorItem.className = 'suggestion-item';
-            errorItem.textContent = 'Error searching for locations';
-            suggestionList.appendChild(errorItem);
+            console.error('VGN search failed: ', error);
+            searchOSMLocations(query);
         }
+    }
+
+    function displayVGNSuggestions(suggestions) {
+        suggestionList.innerHTML = '';
+
+        if (suggestions.length === 0) {
+            const noResults = document.createElement('div');
+            noResults.className = 'suggestion-item no-results';
+            noResults.textContent = 'No VGN stations found.';
+            suggestionList.appendChild(noResults);
+            return;
+        }
+
+        suggestions.forEach(suggestion => {
+            const item = document.createElement('div');
+            item.className = 'suggestion-item vgn-result';
+            item.textContent = suggestion.value || suggestion.name;
+            item.dataset.suggestion = JSON.stringify(suggestion); // store complete suggestion data
+
+            if (suggestion.type) {
+                const typeIndicator = document.createElement('span');
+                typeIndicator.className = 'suggestion-type';
+                typeIndicator.textContent = `(${getTypeDescription(suggestion.type)})`;
+                item.appendChild(typeIndicator);
+            }
+
+            suggestionList.appendChild(item);
+        });
+    }
+
+    async function handleSuggestionSelection(data, value) {
+        try {
+            selectedStation.nameInfo = data.name || data.id;
+            selectedStation.nameInfoBackup =  data.name || data.id;
+            selectedStation.name = value;
+            selectedStation.nameBackup = value;
+            selectedStation.place = data.place;
+            selectedStation.type = data.type;
+
+            if (data.coord) selectedStation.coordData = data.name;
+
+        } catch (error) {
+            console.error('Error handling suggestion selection: ', error);
+        }
+    }
+
+    // Search bus stations using OpenStreetMap with coordniate transformation
+    async function searchOSMLocations(query) {
+        try {
+            suggestionList.innerHTML = '<div class="suggestion-item loading">📍 Searching location...</div>';
+
+            // Focus on German address (viewbox around Germany)
+            const response = await fetch(
+                `https://nominatim.openstreetmap.org/search?` +
+                `format=json&q=${encodeURIComponent(query)}&` +
+                `countrycodes=de&addressdetails=1&limit=3&` +
+                `viewbox=10.3,49.2,11.8,50.2&bounded=1`,
+                {
+                    headers: {
+                        'User-Agent': 'VGN-Bus-Schedule-App',
+                    },
+                },
+            );
+
+            const data = await response.json();
+            displayOSMSuggestions(data);
+
+        } catch (error) {
+            console.error('OSM search failed: ', error);
+            suggestionList.innerHTML = '<div class="suggestion-item error">Search failed.</div>';
+        }
+    }
+
+    function displayOSMSuggestions(places) {
+        suggestionList.innerHTML = ''; // clear previous suggestions
+
+        if (places.length === 0) {
+            const noResults = document.createElement('div');
+            noResults.className = 'suggestion-item';
+            noResults.textContent = 'No results found';
+            suggestionList.appendChild(noResults);
+        }
+
+        data.forEach(place => {
+            const town = place.address?.town || place.address?.city || place.address?.village || 'Unknown';
+            const road = place.address?.road || place.address?.pedestrian || 'Unknown Street';
+            const name = `${town}, ${road}`;
+
+            /**
+             * Transform WGS84 coordinates to approximate NAV4
+             * This is a very simplified transformation, not exact.
+             */
+            const approxX = transformToNAV4X(parseFloat(place.lon), parseFloat(place.lat));
+            const approxY = transformToNAV4Y(parseFloat(place.lon), parseFloat(place.lat));
+
+            const osmData = {
+                name: name,
+                coord: `${approxX}:${approxY}`,
+                type: 'address',
+                stateless: `coord:${approxX}:${approxY}:NAV4:${encodeURIComponent(name)}`,
+            };
+
+            const item = document.createElement('div');
+            item.className = 'suggestion-item osm-result';
+            item.textContent = name;
+            item.dataset.suggestion = JSON.stringify(osmData);
+
+            const typeIndicator = document.createElement('span');
+            typeIndicator.className = 'suggestion-type';
+            type.textContent = ' (Address)';
+            item.appendChild(typeIndicator);
+
+            suggestionList.appendChild(item);
+        });
+    }
+
+    // Get type descriptions
+    function getTypeDescription(type) {
+        const typeMap = {
+            'Haltestelle': 'Bus Stop',
+            'POI': 'Point of Interest',
+            'Adresse': 'Address',
+        };
+
+        return typeMap[type] || type;
     }
 
     // Simplified transformation from WGS84 to approximate NAV4 coordinates
@@ -127,26 +228,30 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function loadBusSchedule() {
-        const stationName = selectedStation.name || 'Bamberg, Marienstraße 7';
-        const coordData = selectedStation.coordData || 'coord:4421153.17:630856.29:NAV4:Bamberg,+Marienstraße';
-        const encodedTitle = encodeURIComponent(`Departs from ${stationName}`);
+        const stationName = selectedStation.name || 'Bamberg, ZOB';
+        const coordData = selectedStation.coordData || selectedStation.nameInfo || 'coord:4420478.90:630830.91:NAV4:Bamberg,+ZOB';
+        const encodedTitle = encodeURIComponent(`Departures from ${stationName}`);
 
         loadingIndicator.style.display = 'block';
         scheduleContainer.innerHTML = '';
 
+        const vgnUrl = 'https://www.vgn.de/atafel?' +
+            `name=${encodeURIComponent(stationName)}` +
+            `&dm=${encodeURIComponent(coordData)}` +
+            `&layout=2` +
+            `&title=${encodedTitle}` +
+            '&means=5';
+        
+        console.log('Loading VGN URL: ', vgnUrl);
+
         const webview = document.createElement('webview');
-        webview.src = 'https://www.vgn.de/atafel?'
-            + `name=${encodeURIComponent(stationName)}`
-            + `&dm=${encodeURIComponent(coordData)}`
-            + `&layout=2`
-            + `&title=${encodedTitle}`
-            + '&means=5';
+        webview.src = vgnUrl;
         webview.style.width = '100%';
         webview.style.height = '350px';
         webview.style.border = 'none';
         webview.allowpopups = false;
         webview.partition = 'vgn-schedule';
-        webview.disablewebsecurity = false;
+        // webview.disablewebsecurity = false;
 
         webview.addEventListener('did-start-loading', () => {
             loadingIndicator.style.display = 'block';
@@ -159,9 +264,24 @@ document.addEventListener('DOMContentLoaded', () => {
         webview.addEventListener('did-fail-load', (event) => {
             console.error('Failed to load content: ', event);
             loadingIndicator.style.display = 'none';
-            scheduleContainer.innerHTML = `<p>Failed to load schedule. Error: ${event.errorDescription}</p>`;
+            scheduleContainer.innerHTML = `
+                <div class="error-message">
+                    <p>Failed to load schedule for ${stationname}</p>
+                    <p>Error: ${error.errorDescription}</p>
+                    <button onClick="loadBusSchedule()">Retry</button>
+                    <details style="margin-top: 10px;">
+                        <summary>Debug Info:</summary>
+                        <p>URL: ${vgnUrl}</p>
+                        <p>Station: ${JSON.stringify(selectedStation, null, 2)}</p>
+                    </details>
+                </div>
+            `;
         });
 
         scheduleContainer.appendChild(webview);
     }
+
+    // Initialize backup values
+    selectedStation.nameInfoBackup = selectedStation.nameInfo;
+    selectedStation.nameBackup = selectedStation.name;
 });
