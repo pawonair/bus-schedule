@@ -60,6 +60,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const response = await fetch(
                 `https://www.vgn.de/ib/site/tools/EFA_Suggest_v3.php?` +
+                // `https://www.vgn.de/ib/site/tools/DEFAS_Suggest.php?` +
                 `query=${encodeURIComponent(query)}` +
                 `&minChars=2`,
                 {
@@ -73,12 +74,28 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!response.ok) throw new Error('VGN API request failed.');
 
             const data = await response.json();
-            displayVGNSuggestions(data.suggestions || []);
+            parseVGNSuggestions(data || {});
             
         } catch (error) {
             console.error('VGN search failed: ', error);
             searchOSMLocations(query);
         }
+    }
+
+    function parseVGNSuggestions(dataObj) {
+        let parsedData = [];
+
+        Object.keys(dataObj).forEach(key => {
+            const keyArr = dataObj[key];
+            if (Array.isArray(keyArr)) {
+                keyArr.forEach((val, i) => {
+                    if (!parsedData[i]) parsedData[i] = {};
+                    parsedData[i][key] = val;
+                });
+            }
+        });
+
+        displayVGNSuggestions(parsedData);
     }
 
     function displayVGNSuggestions(suggestions) {
@@ -95,30 +112,33 @@ document.addEventListener('DOMContentLoaded', () => {
         suggestions.forEach(suggestion => {
             const item = document.createElement('div');
             item.className = 'suggestion-item vgn-result';
-            item.textContent = suggestion.value || suggestion.name;
             item.dataset.suggestion = JSON.stringify(suggestion); // store complete suggestion data
 
-            if (suggestion.type) {
-                const typeIndicator = document.createElement('span');
-                typeIndicator.className = 'suggestion-type';
-                typeIndicator.textContent = `(${getTypeDescription(suggestion.type)})`;
-                item.appendChild(typeIndicator);
-            }
+            const typeIndicator = document.createElement('div');
+            typeIndicator.className = suggestion.data.type ? `suggestion-type ${getTypeDescription(suggestion.data.type)}` : 'map';
+            
+            const itemText = document.createElement('div');
+            itemText.textContent = suggestion.suggestions;
+
+            item.appendChild(typeIndicator);
+            item.appendChild(itemText);
 
             suggestionList.appendChild(item);
         });
     }
 
     async function handleSuggestionSelection(data, value) {
+        console.log(data, value);
+ 
         try {
-            selectedStation.nameInfo = data.name || data.id;
-            selectedStation.nameInfoBackup =  data.name || data.id;
+            selectedStation.nameInfo = data.data.name || data.id;
+            selectedStation.nameInfoBackup =  data.data.name || data.id;
             selectedStation.name = value;
             selectedStation.nameBackup = value;
-            selectedStation.place = data.place;
-            selectedStation.type = data.type;
+            selectedStation.place = data.data.place;
+            selectedStation.type = data.data.type;
 
-            if (data.coord) selectedStation.coordData = data.name;
+            if (data.data.type === 'coord') selectedStation.coordData = `coord:${data.data.name}`;
 
         } catch (error) {
             console.error('Error handling suggestion selection: ', error);
@@ -198,9 +218,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // Get type descriptions
     function getTypeDescription(type) {
         const typeMap = {
-            'Haltestelle': 'Bus Stop',
-            'POI': 'Point of Interest',
-            'Adresse': 'Address',
+            'stopID': 'h_mobiledata_badge',
+            'poiID': 'location_on',
+            'coord': 'home',
         };
 
         return typeMap[type] || type;

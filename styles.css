@@ -4,6 +4,7 @@ body {
   padding: 20px;
   background-color: #f5f5f5;
 }
+
 .container {
   max-width: 800px;
   margin: 0 auto;
@@ -12,6 +13,7 @@ body {
   border-radius: 5px;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
+
 .search-container {
   margin-bottom: 20px;
   display: flex;
@@ -19,10 +21,12 @@ body {
   gap: 10px;
   align-items: center;
 }
+
 .search-input-wrapper {
   position: relative;
   flex-grow: 1;
 }
+
 input {
   padding: 8px;
   border: 1px solid #ddd;
@@ -30,6 +34,7 @@ input {
   width: 100%;
   box-sizing: border-box;
 }
+
 button {
   padding: 8px 16px;
   background-color: #4CAF50;
@@ -38,24 +43,28 @@ button {
   border-radius: 4px;
   cursor: pointer;
 }
+
 button:hover {
   background-color: #45a049;
 }
+
 #loading-indicator {
   display: none;
   text-align: center;
   padding: 20px;
 }
+
 #schedule-container {
   min-height: 350px;
   background-color: #f9f9f9;
   border: 1px solid #ddd;
 }
+
 .suggestion-list {
   position: absolute;
   top: 100%;
   left: 0;
-  width: 100%;
+  width: calc(100% - 2px);
   max-height: 200px;
   overflow-y: auto;
   background-color: white;
@@ -65,96 +74,99 @@ button:hover {
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
   z-index: 10;
 }
+
 .suggestion-item {
+  display: flex;
+  align-items: center;
   padding: 8px;
   cursor: pointer;
-}
-.suggestion-item:hover {
-  background-color: #f0f0f0;
-}
-.osm-result {
   border-bottom: 1px solid #eee;
+  background-color: #fff;
 }
-.osm-result:last-child {
+
+.suggestion-item:last-child {
   border-bottom: none;
 }
 
-.suggestion-header {
-    background-color: #f0f0f0;
-    padding: 8px 12px;
-    font-weight: bold;
-    font-size: 12px;
-    color: #666;
-    text-transform: uppercase;
-    border-bottom: 1px solid #ddd;
-}
-
-.suggestion-separator {
-    height: 1px;
-    background-color: #ddd;
-    margin: 5px 0;
+.suggestion-item:hover {
+  background-color: #f0f0f0 !important;
 }
 
 .suggestion-item.vgn-result {
-    background-color: #fff;
-    border-left: 3px solid #2196F3; /* Blue for VGN stops */
+  border-left: 3px solid #2196F3; /* Blue for VGN stops */
 }
 
 .suggestion-item.osm-result {
-    background-color: #fff;
-    border-left: 3px solid #4CAF50; /* Green for OSM addresses */
+  border-left: 3px solid #4CAF50; /* Green for OSM addresses */
 }
 
 .suggestion-item.loading {
-    color: #666;
-    font-style: italic;
-    background-color: #f9f9f9;
+  color: #666;
+  font-style: italic;
+  background-color: #f9f9f9;
 }
 
 .suggestion-item.no-results {
-    color: #999;
-    font-style: italic;
-    text-align: center;
-    padding: 16px;
+  color: #999;
+  font-style: italic;
+  text-align: center;
+  padding: 16px;
 }
 
 .suggestion-item.error {
-    color: #f44336;
-    background-color: #ffebee;
-    border-left: 3px solid #f44336;
-}
-
-.transport-modes {
-    font-size: 11px;
-    color: #666;
-    font-weight: normal;
+  color: #f44336;
+  background-color: #ffebee;
+  border-left: 3px solid #f44336;
 }
 
 .suggestion-type {
-    font-size: 11px;
-    color: #666;
-    font-weight: normal;
-    font-style: italic;
+  margin-right: 8px;
+  width: 24px;
+  height: 24px;
+}
+
+.suggestion-type.h_mobiledata_badge {
+  background-color: #009767;
+  mask: url(assets/icons/h_mobiledata_badge_24.svg) no-repeat center;
+  -webkit-mask: url(assets/icons/h_mobiledata_badge_24.svg) no-repeat center;
+}
+
+.suggestion-type.location_on {
+  background-color: #c1272d;
+  mask: url(assets/icons/location_on_24.svg) no-repeat center;
+  -webkit-mask: url(assets/icons/location_on_24.svg) no-repeat center;
+}
+
+.suggestion-type.home {
+  background-color: #2196F3;
+  mask: url(assets/icons/home_24.svg) no-repeat center;
+  -webkit-mask: url(assets/icons/home_24.svg) no-repeat center;
+}
+
+.suggestion-type.map {
+  background-color: #fbbb05;
+  mask: url(assets/icons/map_24.svg) no-repeat center;
+  -webkit-mask: url(assets/icons/map_24.svg) no-repeat center;
 }
 
 .error-message {
-    text-align: center;
-    padding: 20px;
-    background-color: #ffebee;
-    border-radius: 4px;
-    margin: 10px;
+  text-align: center;
+  padding: 20px;
+  background-color: #ffebee;
+  border-radius: 4px;
+  margin: 10px;
 }
 
 .error-message button {
-    margin-top: 10px;
-    padding: 8px 16px;
-    background-color: #2196F3;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
+  margin-top: 10px;
+  padding: 8px 16px;
+  background-color: #2196F3;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
 }
 
 .error-message button:hover {
-    background-color: #1976D2;
+  background-color: #1976D2;
 }
