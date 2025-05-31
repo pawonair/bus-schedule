@@ -14,11 +14,17 @@ body {
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
-.search-container {
-  margin-bottom: 20px;
+.controls {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
+  vertical-align: middle;
+  align-items: center;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+.search-container {
+  flex-grow: 5;
   align-items: center;
 }
 
@@ -147,6 +153,16 @@ button:hover {
   background-color: #fbbb05;
   mask: url(assets/icons/map_24.svg) no-repeat center;
   -webkit-mask: url(assets/icons/map_24.svg) no-repeat center;
+}
+
+#load-button {
+  flex-grow: 1;
+}
+
+#load-button.is-loading {
+  pointer-events: none;
+  background-color: #45a049;
+  opacity: 80%;
 }
 
 .error-message {

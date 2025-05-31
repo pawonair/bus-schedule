@@ -3,7 +3,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const stationInput = document.getElementById('station-input');
     const suggestionList = document.getElementById('suggestion-list');
     const loadButton = document.getElementById('load-button');
-    const loadingIndicator = document.getElementById('loading-indicator');
+    // const loadingIndicator = document.getElementById('loading-indicator');
 
     let selectedStation = {
         name: 'Bamberg, ZOB',
@@ -128,8 +128,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function handleSuggestionSelection(data, value) {
-        console.log(data, value);
- 
         try {
             selectedStation.nameInfo = data.data.name || data.id;
             selectedStation.nameInfoBackup =  data.data.name || data.id;
@@ -138,7 +136,7 @@ document.addEventListener('DOMContentLoaded', () => {
             selectedStation.place = data.data.place;
             selectedStation.type = data.data.type;
 
-            if (data.data.type === 'coord') selectedStation.coordData = `coord:${data.data.name}`;
+            if (selectedStation.type === 'coord') selectedStation.coordData = `coord:${data.data.name}`;
 
         } catch (error) {
             console.error('Error handling suggestion selection: ', error);
@@ -191,8 +189,8 @@ document.addEventListener('DOMContentLoaded', () => {
              * Transform WGS84 coordinates to approximate NAV4
              * This is a very simplified transformation, not exact.
              */
-            const approxX = transformToNAV4X(parseFloat(place.lon), parseFloat(place.lat));
-            const approxY = transformToNAV4Y(parseFloat(place.lon), parseFloat(place.lat));
+            const approxX = transformToNAV4X(parseFloat(place.lon));
+            const approxY = transformToNAV4Y(parseFloat(place.lat));
 
             const osmData = {
                 name: name,
@@ -228,7 +226,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Simplified transformation from WGS84 to approximate NAV4 coordinates
     // Note: This is a rough approximation for the Nuremberg/Bavaria region
-    function transformToNAV4X(lon, lat) {
+    function transformToNAV4X(lon) {
         // Center point reference: Nuremberg
         const centerLon = 11.0767;
         const centerLat = 49.4521;
@@ -238,7 +236,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return Math.round(4400000 + (lon - centerLon) * scaleFactor * Math.cos(centerLat * Math.PI/180));
     }
 
-    function transformToNAV4Y(lon, lat) {
+    function transformToNAV4Y(lat) {
         // Center point reference: Nuremberg
         const centerLat = 49.4521;
         const scaleFactor = 111320; // Approx meters per degree
@@ -250,9 +248,10 @@ document.addEventListener('DOMContentLoaded', () => {
     function loadBusSchedule() {
         const stationName = selectedStation.name || 'Bamberg, ZOB';
         const coordData = selectedStation.coordData || selectedStation.nameInfo || 'coord:4420478.90:630830.91:NAV4:Bamberg,+ZOB';
-        const encodedTitle = encodeURIComponent(`Departures from ${stationName}`);
+        const encodedTitle = encodeURIComponent(`Departures near ${stationName}`);
 
-        loadingIndicator.style.display = 'block';
+        loadButton.className.replace = 'load-button is-loading';
+        loadButton.innerText = 'Loading...';
         scheduleContainer.innerHTML = '';
 
         const vgnUrl = 'https://www.vgn.de/atafel?' +
@@ -262,7 +261,7 @@ document.addEventListener('DOMContentLoaded', () => {
             `&title=${encodedTitle}` +
             '&means=5';
         
-        console.log('Loading VGN URL: ', vgnUrl);
+        // console.log('Loading VGN URL: ', vgnUrl);
 
         const webview = document.createElement('webview');
         webview.src = vgnUrl;
@@ -274,16 +273,19 @@ document.addEventListener('DOMContentLoaded', () => {
         // webview.disablewebsecurity = false;
 
         webview.addEventListener('did-start-loading', () => {
-            loadingIndicator.style.display = 'block';
+            loadButton.className = 'load-button is-loading';
+            loadButton.innerText = 'Loading...';
         });
 
         webview.addEventListener('did-finish-load', () => {
-            loadingIndicator.style.display = 'none';
+            loadButton.className = 'load-button';
+            loadButton.innerText = 'Load Schedule';
         });
 
         webview.addEventListener('did-fail-load', (event) => {
             console.error('Failed to load content: ', event);
-            loadingIndicator.style.display = 'none';
+            loadButton.className = 'load-button';
+            loadButton.innerText = 'Load Schedule';
             scheduleContainer.innerHTML = `
                 <div class="error-message">
                     <p>Failed to load schedule for ${stationname}</p>
