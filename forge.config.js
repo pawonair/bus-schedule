@@ -4,33 +4,65 @@ const { FuseV1Options, FuseVersion } = require('@electron/fuses');
 module.exports = {
   packagerConfig: {
     asar: true,
+    icon: './icons/'
   },
   rebuildConfig: {},
   makers: [
     {
       name: '@electron-forge/maker-squirrel',
-      config: {},
+      config: {
+        iconUrl: 'https://github.com/pawonair/bus-schedule/icons/Icon.ico',
+        setupIcon: './icons/Icon.ico',
+        authors: 'Pawan Sunuwar',
+        description: 'VGN - Bus Schedule app',
+      },
     },
     {
       name: '@electron-forge/maker-zip',
-      platforms: ['darwin'],
+      icon: './icons/Icon.png',
+      platforms: ['darwin', 'linux'],
     },
     {
       name: '@electron-forge/maker-deb',
-      config: {},
+      config: {
+        options: {
+          icon: './icons/Icon.png',
+          maintainer: 'Pawan Sunuwar',
+          homepage: 'https://github.com/pawonair/bus-schedule',
+        },
+      },
     },
     {
       name: '@electron-forge/maker-rpm',
-      config: {},
+      config: {
+        options: {
+          icon: './icons/Icon.png',
+          homepage: 'https://github.com/pawonair/bus-schedule',
+        },
+      },
+    },
+    {
+      name: '@electron-forge/maker-dmg',
+      config: {
+        icon: './icons/Icon.icns',
+      },
     },
   ],
-  osxSign: {},
-  /* osxNotarize: {
-    tool: 'notarytool',
-    appleId: process.env.APPLE_ID,
-    appleIdPassword: process.env.APPLE_PASSWORD,
-    teamId: process.env.APPLE_TEAM_ID,
-  }, */
+  publishers: [
+    {
+      name: '@electron-forge/publisher-github',
+      config: {
+        authToken: process.env.GITHUB_TOKEN,
+        repository: {
+          owner: 'pawonair',
+          name: 'bus-schedule',
+        },
+        draft: true,
+        prerelease: false,
+        generateReleaseNotes: true,
+      },
+    },
+  ],
   plugins: [
     {
       name: '@electron-forge/plugin-auto-unpack-natives',
