@@ -5,6 +5,8 @@ const createWindow = () => {
     const win = new BrowserWindow({
         width: 840,
         height: 515,
+        icon: './icons/Icon.png',
+        resizable: false,
         webPreferences: {
             preload: path.join(__dirname, 'preload.js'),
             nodeIntegration: false,
@@ -29,7 +31,7 @@ const createWindow = () => {
     });
 
     win.loadFile('index.html');
-    win.webContents.openDevTools();
+    // win.webContents.openDevTools();
 };
 
 app.whenReady().then(() => {

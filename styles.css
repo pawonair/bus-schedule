@@ -43,7 +43,7 @@ input {
 
 button {
   padding: 8px 16px;
-  background-color: #4CAF50;
+  background-color: #4caf50;
   color: white;
   border: none;
   border-radius: 4px;
@@ -103,7 +103,7 @@ button:hover {
 }
 
 .suggestion-item.osm-result {
-  border-left: 3px solid #4CAF50; /* Green for OSM addresses */
+  border-left: 3px solid #4caf50; /* Green for OSM addresses */
 }
 
 .suggestion-item.loading {
