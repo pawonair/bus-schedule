@@ -20,7 +20,7 @@ module.exports = {
     {
       name: '@electron-forge/maker-zip',
       icon: './icons/Icon.png',
-      platforms: ['darwin'],
+      platforms: ['darwin', 'linux'],
     },
     {
       name: '@electron-forge/maker-deb',
@@ -45,6 +45,21 @@ module.exports = {
       name: '@electron-forge/maker-dmg',
       config: {
         icon: './icons/Icon.icns',
+      },
+    },
+  ],
+  publishers: [
+    {
+      name: '@electron-forge/publisher-github',
+      config: {
+        authToken: process.env.GITHUB_TOKEN,
+        repository: {
+          owner: 'pawonair',
+          name: 'bus-schedule',
+        },
+        draft: true,
+        prerelease: false,
+        generateReleaseNotes: true,
       },
     },
   ],
