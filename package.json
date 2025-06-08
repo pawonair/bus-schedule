@@ -36,6 +36,7 @@
     "@electron-forge/plugin-fuses": "^7.8.1",
     "@electron-forge/publisher-github": "^7.8.1",
     "@electron/fuses": "^1.8.0",
+    "dotenv": "^16.5.0",
     "electron": "^36.2.0"
   },
   "dependencies": {
