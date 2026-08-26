@@ -59,9 +59,10 @@ document.addEventListener('DOMContentLoaded', () => {
             suggestionList.innerHTML = '<div class="suggestion-item loading">🔍 Searching stops...</div>';
 
             const response = await fetch(
-                `https://www.vgn.de/ib/site/tools/EFA_Suggest_v3.php?` +
-                // `https://www.vgn.de/ib/site/tools/DEFAS_Suggest.php?` +
+                // `https://www.vgn.de/ib/site/tools/EFA_Suggest_v3.php?` +
+                `https://www.vgn.de/ib/site/tools/DEFAS_Suggest.php?` +
                 `query=${encodeURIComponent(query)}` +
+                `&gps=1&Edition=de` + 
                 `&minChars=2`,
                 {
                     method: 'GET',
@@ -115,7 +116,9 @@ document.addEventListener('DOMContentLoaded', () => {
             item.dataset.suggestion = JSON.stringify(suggestion); // store complete suggestion data
 
             const typeIndicator = document.createElement('div');
-            typeIndicator.className = suggestion.data.type ? `suggestion-type ${getTypeDescription(suggestion.data.type)}` : 'map';
+            typeIndicator.className = suggestion.icons ?
+                                      `suggestion-type ${getIcon(suggestion.icons)}` :
+                                      (suggestion.data.type ? `suggestion-type ${getTypeDescription(suggestion.data.type)}` : 'map');
             
             const itemText = document.createElement('div');
             itemText.textContent = suggestion.suggestions;
@@ -223,6 +226,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
         return typeMap[type] || type;
     }
+    
+    // Get icons
+    function getIcon(icon) {
+        const iconMap = {
+            'Haltestelle': 'h_mobiledata_badge',
+            'POI': 'location_on',
+            'Adresse': 'home',
+        };
+
+        return iconMap[icon] || icon;
+    }
 
     // Simplified transformation from WGS84 to approximate NAV4 coordinates
     // Note: This is a rough approximation for the Nuremberg/Bavaria region
@@ -246,8 +260,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function loadBusSchedule() {
+        console.log(selectedStation)
         const stationName = selectedStation.name || 'Bamberg, ZOB';
-        const coordData = selectedStation.coordData || selectedStation.nameInfo || 'coord:4420478.90:630830.91:NAV4:Bamberg,+ZOB';
+        const coordData = selectedStation.nameInfo || selectedStation.coordData || 'coord:4420478.90:630830.91:NAV4:Bamberg,+ZOB';
         const encodedTitle = encodeURIComponent(`Departures near ${stationName}`);
 
         loadButton.className.replace = 'load-button is-loading';
